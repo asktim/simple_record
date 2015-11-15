@@ -7,6 +7,12 @@ describe 'Sample Usage' do
   before { SimpleRecord.connection = connection }
 
   describe 'simple_record/schema' do
+    class CustomComment
+      include Schema
+
+      attribute 'text', :text
+    end
+
     class Article
       include Schema
 
@@ -14,12 +20,6 @@ describe 'Sample Usage' do
       attribute 'name', :string
       attribute 'description', :text
       attribute 'read_count', :integer
-    end
-
-    class CustomComment
-      include Schema
-
-      attribute 'text', :text
     end
 
     describe 'Class Methods' do
@@ -36,11 +36,11 @@ describe 'Sample Usage' do
           AND    table_name = '#{ Article.table_name }'
         SQL
 
-        expect { Article.sql_create }.to change {
+        expect { Article.dt_create }.to change {
           connection.exec(sql).ntuples
         }.from(0).to(1)
 
-        expect { Article.sql_drop }.to change {
+        expect { Article.dt_drop }.to change {
           connection.exec(sql).ntuples
         }.from(1).to(0)
       end
@@ -50,6 +50,10 @@ describe 'Sample Usage' do
       let(:attributes) { {} }
 
       subject { Article.new(attributes) }
+
+      before(:all) { Article.dt_create }
+
+      after(:all) { Article.dt_drop }
 
       it 'should respond to schema described methods' do
         is_expected.to respond_to(:name)
@@ -64,6 +68,14 @@ describe 'Sample Usage' do
         it 'should populate initialization values' do
           expect(subject.name).to eql('Mythbusters are gone')
           expect{ subject.blah }.to raise_error(NoMethodError)
+        end
+
+        it 'can be saved' do
+          expect{ subject.create }.to change {
+            connection.exec(<<-SQL).ntuples
+              SELECT * FROM #{ Article.table_name }
+            SQL
+          }.by(1)
         end
       end
     end

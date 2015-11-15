@@ -6,6 +6,10 @@ class Column
     @typename = typename
   end
 
+  def serial?
+    @typename == :serial
+  end
+
   def sql_definition
     "#{ name } #{ sql_typename }"
   end
@@ -18,5 +22,15 @@ class Column
       string: 'character varying(255)',
       text: 'text'
     }[@typename]
+  end
+end
+
+class Columns < Array
+  def value_columns
+    select { |c| !c.serial? }
+  end
+
+  def value_names
+    value_columns.map &:name
   end
 end
