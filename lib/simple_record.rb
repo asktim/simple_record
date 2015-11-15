@@ -4,7 +4,7 @@ require "simple_record/column"
 require "simple_record/schema"
 
 module SimpleRecord
-  def self.connection=(connection)
-    @connection = connection
+  class << self
+    attr_accessor :connection
   end
 end

@@ -25,7 +25,21 @@ module Schema
   end
 
   module ClassMethods
-    @@columns = []
+    ID_ATTRIBUTE = 'id'
+
+    @@columns = [Column.new(ID_ATTRIBUTE, :serial)]
+
+    def table_name
+      word = name
+      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
+      word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+      word.downcase!
+      word
+    end
+
+    def connection
+      SimpleRecord::connection
+    end
 
     def columns
       @@columns
@@ -41,6 +55,19 @@ module Schema
       define_method("#{ name }") do
         attributes[name]
       end
+    end
+
+    def sql_create
+      connection.exec <<-SQL
+        CREATE TABLE #{ table_name } (
+          #{ columns.map(&:sql_definition).join(', ') },
+          CONSTRAINT #{ table_name }_pkey PRIMARY KEY (#{ ID_ATTRIBUTE })
+        );
+      SQL
+    end
+
+    def sql_drop
+      connection.exec "DROP TABLE #{ table_name };"
     end
   end
 end

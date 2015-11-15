@@ -2,8 +2,9 @@ require 'spec_helper'
 
 describe 'Sample Usage' do
   let(:db) { ENV['simple_record_db'] || 'simple_record' }
+  let(:connection) { PG.connect(dbname: db) }
 
-  before { SimpleRecord.connection = PG.connect(dbname: db) }
+  before { SimpleRecord.connection = connection }
 
   describe 'simple_record/schema' do
     class Article
@@ -15,10 +16,34 @@ describe 'Sample Usage' do
       attribute 'read_count', :integer
     end
 
-    class Comment
+    class CustomComment
       include Schema
 
       attribute 'text', :text
+    end
+
+    describe 'Class Methods' do
+      it 'should produce table name' do
+        expect(Article.table_name).to eql('article')
+        expect(CustomComment.table_name).to eql('custom_comment')
+      end
+
+      it 'should create/drop db persistance' do
+        sql = <<-SQL
+          SELECT *
+          FROM   information_schema.tables
+          WHERE  table_catalog = '#{ db }'
+          AND    table_name = '#{ Article.table_name }'
+        SQL
+
+        expect { Article.sql_create }.to change {
+          connection.exec(sql).ntuples
+        }.from(0).to(1)
+
+        expect { Article.sql_drop }.to change {
+          connection.exec(sql).ntuples
+        }.from(1).to(0)
+      end
     end
 
     context 'New Record' do
