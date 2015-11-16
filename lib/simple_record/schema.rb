@@ -2,11 +2,17 @@ module Schema
   extend Forwardable
 
   def_delegators :"self.class", :columns, :connection, :table_name
+  attr_reader :primary_key
 
   def initialize(init_attrs = {})
     known_attributes = init_attrs.select { |key, _| columns.value_names.include?(key) }
     known_attributes.each do |key, value|
-      self.public_send("#{ key }=", value)
+      public_send("#{ key }=", value)
+    end
+
+    @primary_key = nil
+    if serial = init_attrs[columns.serial_column.name]
+      @primary_key = serial
     end
   end
 
@@ -18,6 +24,10 @@ module Schema
       (#{ columns.value_names.join(', ') })
       VALUES(#{ params_sql })
     SQL
+  end
+
+  def persisted?
+    !@primary_key.nil?
   end
 
   private

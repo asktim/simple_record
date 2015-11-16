@@ -103,6 +103,8 @@ describe 'Sample Usage' do
         scope = Article.where('read_count > ?', [1]).where('name = ?', ['Name3'])
         finded = scope.first
         expect(finded).to be_a Article
+        expect(finded).to be_persisted
+        expect(finded.primary_key.to_i).to eql(4)
       end
     end
   end
