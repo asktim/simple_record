@@ -37,10 +37,10 @@ module Schema
   module ClassMethods
     ID_ATTRIBUTE = 'id'
 
+    # Define finding scopes
+    # CODE: Article.where('name = ?', ['John Doe'])
     def where(query, params = [])
-      Query.new do |fetcher|
-        fetcher << [query, params]
-      end
+      Query.new(self).where(query, params)
     end
 
     def table_name
