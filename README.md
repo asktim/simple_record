@@ -22,7 +22,31 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+
+class Article
+  include Schema
+
+  # Schema Definition
+  attribute 'name', :string
+  attribute 'description', :text
+  attribute 'read_count', :integer
+end
+
+# Creates datatable
+Article.dt_create
+
+# Drops datatable
+Article.dt_drop
+
+Article.new('name' => 'Cacher in the rye')
+
+Article.create
+
+Article.where('name = ?', 'Cacher in the rye').where('id > 10')
+# => Enumerator for Article objects
+
+```
 
 ## Development
 
@@ -32,10 +56,9 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/simple_record.
+Bug reports and pull requests are welcome on GitHub at https://github.com/asktim/simple_record.
 
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
