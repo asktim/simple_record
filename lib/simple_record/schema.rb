@@ -4,16 +4,12 @@ module Schema
   def_delegators :"self.class", :columns, :connection, :table_name
   attr_reader :primary_key
 
-  def initialize(init_attrs = {})
-    known_attributes = init_attrs.select { |key, _| columns.value_names.include?(key) }
-    known_attributes.each do |key, value|
+  def initialize(attrs = {})
+    known_attrs(attrs).each do |key, value|
       public_send("#{ key }=", value)
     end
 
-    @primary_key = nil
-    if serial = init_attrs[columns.serial_column.name]
-      @primary_key = serial
-    end
+    init_primary_key(attrs[columns.serial_column.name])
   end
 
   def create
@@ -31,6 +27,19 @@ module Schema
   end
 
   private
+
+  def init_primary_key(key)
+    @primary_key = nil
+    @primary_key = key if key
+  end
+
+  def known_keys
+    columns.value_names
+  end
+
+  def known_attrs(attrs)
+    attrs.select { |key, _| known_keys.include?(key) }
+  end
 
   def to_sql_params
     columns.value_names.map { |name| attributes[name] }
