@@ -53,6 +53,12 @@ describe 'Sample Usage' do
           connection.exec(sql).ntuples
         }.from(1).to(0)
       end
+
+      it '#attribute raises exception if column type wrong' do
+        expect {
+          CustomComment.attribute :wrong, 'blah'
+        }.to raise_error Column::UnknownTypeException
+      end
     end
 
     context 'New Record' do

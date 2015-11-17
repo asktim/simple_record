@@ -1,4 +1,7 @@
 class Column
+  class UnknownTypeException < Exception
+  end
+
   SQL_TYPE_MAP = {
     serial: 'serial NOT NULL',
     integer: 'integer',
@@ -16,6 +19,10 @@ class Column
   attr_reader :name
 
   def initialize(name, typename)
+    unless SQL_TYPE_MAP.keys.include?(typename)
+      raise UnknownTypeException.new('Unknown column type.')
+    end
+
     @name = name
     @typename = typename
   end

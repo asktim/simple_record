@@ -7,6 +7,7 @@ module Schema
   SQL_DT_DROP = 'DROP TABLE %{table};'
 
   def_delegators :"self.class", :columns, :connection, :table_name
+
   attr_reader :primary_key
 
   def initialize(attrs = {})
@@ -73,7 +74,7 @@ module Schema
     end
 
     def connection
-      SimpleRecord::connection
+      SimpleRecord.connection
     end
 
     def columns
