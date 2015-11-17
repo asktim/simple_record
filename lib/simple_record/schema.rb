@@ -61,7 +61,7 @@ module Schema
     # Define finding scopes
     # CODE: Article.where('name = ?', ['John Doe'])
     def where(query, *params)
-      Query.new(self).where(query, *params)
+      Query.new(self, query, *params)
     end
 
     def table_name
