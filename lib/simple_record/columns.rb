@@ -1,6 +1,14 @@
 class Columns < Array
+  def [](index)
+    if index.is_a? Integer
+      super(index)
+    else
+      find {|item| item.name == index.to_s }
+    end
+  end
+
   def serial_column
-    select { |c| c.serial? }.first
+    find { |c| c.serial? }
   end
 
   def value_columns

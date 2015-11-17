@@ -104,7 +104,8 @@ describe 'Sample Usage' do
         finded = scope.first
         expect(finded).to be_a Article
         expect(finded).to be_persisted
-        expect(finded.primary_key.to_i).to eql(4)
+        expect(finded.primary_key).to eql(4)
+        expect(finded.read_count).to eql(3)
       end
     end
   end

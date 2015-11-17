@@ -1,6 +1,7 @@
 module Schema
   extend Forwardable
 
+  ID_ATTRIBUTE = 'id'
   SQL_INSERT = 'INSERT INTO %{table} (%{columns}) VALUES(%{values});'
   SQL_DT_CREATE = 'CREATE TABLE %{table} (%{columns}, CONSTRAINT %{table}_pkey PRIMARY KEY (%{pkey}));'
   SQL_DT_DROP = 'DROP TABLE %{table};'
@@ -19,7 +20,10 @@ module Schema
   def create
     params = to_sql_params
     params_sql = (1..params.size).map { |i| "$#{ i }" }.join(', ')
-    connection.exec_params(SQL_INSERT % { table: table_name, columns: known_keys.join(', '), values: params_sql }, params)
+    connection.exec_params(
+      SQL_INSERT % { table: table_name, columns: known_keys.join(', '), values: params_sql },
+      params
+    )
   end
 
   def persisted?
@@ -30,7 +34,7 @@ module Schema
 
   def init_primary_key(key)
     @primary_key = nil
-    @primary_key = key if key
+    @primary_key = columns[ID_ATTRIBUTE].cast(key) if key
   end
 
   def known_keys
@@ -54,8 +58,6 @@ module Schema
   end
 
   module ClassMethods
-    ID_ATTRIBUTE = 'id'
-
     # Define finding scopes
     # CODE: Article.where('name = ?', ['John Doe'])
     def where(query, *params)
@@ -82,7 +84,7 @@ module Schema
       columns.push Column.new(name, typename)
 
       define_method("#{ name }=") do |value|
-        attributes[name] = value
+        attributes[name] = columns[name].cast(value)
       end
 
       define_method("#{ name }") do
