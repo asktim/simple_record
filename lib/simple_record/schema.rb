@@ -1,6 +1,10 @@
 module Schema
   extend Forwardable
 
+  SQL_INSERT = 'INSERT INTO %{table} (%{columns}) VALUES(%{values});'
+  SQL_DT_CREATE = 'CREATE TABLE %{table} (%{columns}, CONSTRAINT %{table}_pkey PRIMARY KEY (%{pkey}));'
+  SQL_DT_DROP = 'DROP TABLE %{table};'
+
   def_delegators :"self.class", :columns, :connection, :table_name
   attr_reader :primary_key
 
@@ -15,11 +19,7 @@ module Schema
   def create
     params = to_sql_params
     params_sql = (1..params.size).map { |i| "$#{ i }" }.join(', ')
-    connection.exec_params(<<-SQL, params)
-      INSERT INTO #{ table_name }
-      (#{ columns.value_names.join(', ') })
-      VALUES(#{ params_sql })
-    SQL
+    connection.exec_params(SQL_INSERT % { table: table_name, columns: known_keys.join(', '), values: params_sql }, params)
   end
 
   def persisted?
@@ -58,8 +58,8 @@ module Schema
 
     # Define finding scopes
     # CODE: Article.where('name = ?', ['John Doe'])
-    def where(query, params = [])
-      Query.new(self).where(query, params)
+    def where(query, *params)
+      Query.new(self).where(query, *params)
     end
 
     def table_name
@@ -91,16 +91,15 @@ module Schema
     end
 
     def dt_create
-      connection.exec <<-SQL
-        CREATE TABLE #{ table_name } (
-          #{ columns.map(&:sql_definition).join(', ') },
-          CONSTRAINT #{ table_name }_pkey PRIMARY KEY (#{ ID_ATTRIBUTE })
-        );
-      SQL
+      connection.exec SQL_DT_CREATE % {
+        table: table_name,
+        columns: columns.map(&:sql_definition).join(', '),
+        pkey: ID_ATTRIBUTE
+      }
     end
 
     def dt_drop
-      connection.exec "DROP TABLE #{ table_name };"
+      connection.exec SQL_DT_DROP % { table: table_name }
     end
   end
 end

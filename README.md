@@ -43,7 +43,7 @@ Article.new('name' => 'Cacher in the rye')
 
 Article.create
 
-Article.where('name = ?', ['Cacher in the rye']).where('id > 10')
+Article.where('name = ?', 'Cacher in the rye').where('id > 10')
 # => Enumerator for Article objects
 
 ```

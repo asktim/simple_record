@@ -1,12 +1,14 @@
 class Query
   include Enumerable
 
+  SQL = 'SELECT * FROM %{table} WHERE %{condition}'
+
   def initialize(owner)
     @owner = owner
     @sequence = []
   end
 
-  def where(sql, params = [])
+  def where(sql, *params)
     @sequence << [sql, params]
     self
   end
@@ -15,7 +17,7 @@ class Query
     condition, condition_params = @sequence.transpose
     condition = condition.join(' AND ')
     condition = condition.gsub(/\?/).with_index { |p, i| "$#{ i + 1 }" }
-    sql = "SELECT * FROM #{ @owner.table_name } WHERE #{ condition }"
+    sql = SQL % { table:  @owner.table_name, condition: condition }
     result = SimpleRecord.connection.exec_params(
       sql, condition_params.flatten
     )
